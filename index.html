@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cidade das Perguntas</title>
+<style>
+:root{--bg:#eaf3fb;--card:#fff;--tx:#1d2b3a;--mu:#5b6b7b;--ac:#2563c9;--acx:#fff;--ok:#1f9d55;--er:#d9731a;--bd:#cfdeec;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111a24;--card:#1b2735;--tx:#eef3f8;--mu:#9db0c3;--ac:#6ea1ff;--acx:#0b1420;--ok:#3fc27a;--er:#f09a4a;--bd:#2f4156}}
+:root[data-theme="dark"]{--bg:#111a24;--card:#1b2735;--tx:#eef3f8;--mu:#9db0c3;--ac:#6ea1ff;--acx:#0b1420;--ok:#3fc27a;--er:#f09a4a;--bd:#2f4156}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:18px/1.45 "Trebuchet MS",Verdana,system-ui,sans-serif}
+.wrap{max-width:620px;margin:0 auto;padding:14px}
+nav{display:flex;gap:8px;margin-bottom:14px}
+nav button{flex:1;background:var(--card);color:var(--tx);border:2px solid var(--bd)}
+nav button.on{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+button{font:inherit;font-weight:700;padding:12px 16px;border-radius:14px;border:2px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;min-height:48px}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+button.pri{background:var(--ac);color:var(--acx);border-color:var(--ac);font-size:1.15rem;padding:14px 26px}
+.card{background:var(--card);border:2px solid var(--bd);border-radius:20px;padding:20px;margin-bottom:14px}
+.center{text-align:center}
+.big{font-size:96px;line-height:1.1}
+h2{margin:.3em 0;font-size:1.7rem;line-height:1.2}
+h3{margin:0 0 10px;font-size:1.1rem}
+.prog{color:var(--mu);font-size:.95rem}
+.msg{margin-top:14px;padding:12px;border-radius:14px;min-height:50px;font-weight:700;background:transparent}
+.msg.ok{background:var(--ok);color:#fff}
+.msg.er{background:var(--er);color:#fff}
+.msg.in{background:var(--bg)}
+.row{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--bd)}
+.row:first-of-type{border-top:0}
+.row .t{flex:1;min-width:0}
+.row small{display:block;color:var(--mu)}
+.sm{padding:8px 12px;min-height:40px}
+.add{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+input,select{font:inherit;padding:10px;border-radius:12px;border:2px solid var(--bd);background:var(--bg);color:var(--tx);min-width:0}
+input.f1{flex:1 1 160px}input.em{width:70px;text-align:center}
+details{margin-top:6px}summary{cursor:pointer;color:var(--mu);padding:8px 0}
+.sim{display:flex;flex-wrap:wrap;gap:8px;padding-top:6px}
+@media (prefers-reduced-motion:no-preference){.msg{transition:background .2s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav id="tabs"></nav>
+<main id="main"></main>
+</div>
+<script>
+const KEY='cidade-perguntas-v1';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let S,view='play',pending=null,scanning=false,G={state:'idle',lock:false};
+
+function defaults(){return{
+ places:[{id:'p1',name:'Padaria',emoji:'🥖',uid:''},{id:'p2',name:'Sorveteria',emoji:'🍦',uid:''},{id:'p3',name:'Lanchonete',emoji:'🍔',uid:''},{id:'p4',name:'Restaurante',emoji:'🍽️',uid:''},{id:'p5',name:'Livraria',emoji:'📖',uid:''},{id:'p6',name:'Loja de brinquedos',emoji:'🧸',uid:''},{id:'p7',name:'Parque',emoji:'🌳',uid:''},{id:'p8',name:'Farmácia',emoji:'💊',uid:''},{id:'p9',name:'Hospital',emoji:'🏥',uid:''},{id:'p10',name:'Escola',emoji:'🏫',uid:''},{id:'p11',name:'Supermercado',emoji:'🛒',uid:''},{id:'p12',name:'Pet shop',emoji:'🐶',uid:''},{id:'p13',name:'Oficina mecânica',emoji:'🔧',uid:''},{id:'p14',name:'Cinema',emoji:'🎬',uid:''},{id:'p15',name:'Banco',emoji:'🏦',uid:''},{id:'p16',name:'Correios',emoji:'✉️',uid:''},{id:'p17',name:'Locadora',emoji:'📼',uid:''},{id:'p18',name:'Quitanda',emoji:'🍎',uid:''},{id:'p19',name:'Coreto',emoji:'🎺',uid:''},{id:'p20',name:'Banca de jornal',emoji:'📰',uid:''}],
+ questions:[{id:'q1',text:'Onde compramos pão fresquinho e podemos tomar café?',emoji:'🍞',placeId:'p1'},{id:'q2',text:'Onde compramos sorvete?',emoji:'🍨',placeId:'p2'},{id:'q3',text:'Onde comemos hambúrguer e pastel?',emoji:'🥪',placeId:'p3'},{id:'q4',text:'Onde almoçamos e o garçom traz o prato?',emoji:'🍝',placeId:'p4'},{id:'q5',text:'Onde compramos livros?',emoji:'📚',placeId:'p5'},{id:'q6',text:'Onde compramos brinquedos?',emoji:'🚂',placeId:'p6'},{id:'q7',text:'Onde brincamos ao ar livre e passeamos?',emoji:'⚽',placeId:'p7'},{id:'q8',text:'Onde compramos remédio?',emoji:'🩺',placeId:'p8'},{id:'q9',text:'Onde vamos quando estamos muito doentes ou machucados?',emoji:'🚑',placeId:'p9'},{id:'q10',text:'Onde os alunos aprendem com a professora?',emoji:'✏️',placeId:'p10'},{id:'q11',text:'Onde fazemos as compras do mês, com carrinho?',emoji:'🥫',placeId:'p11'},{id:'q12',text:'Onde levamos o cachorro para tomar banho e comprar ração?',emoji:'🐕',placeId:'p12'},{id:'q13',text:'Onde consertamos o carro?',emoji:'🚗',placeId:'p13'},{id:'q14',text:'Onde assistimos a filmes na tela grande?',emoji:'🍿',placeId:'p14'},{id:'q15',text:'Onde guardamos e sacamos dinheiro?',emoji:'💵',placeId:'p15'},{id:'q16',text:'Onde enviamos cartas e encomendas?',emoji:'📦',placeId:'p16'},{id:'q17',text:'Onde alugamos filmes para assistir em casa?',emoji:'📀',placeId:'p17'},{id:'q18',text:'Onde compramos frutas e verduras fresquinhas?',emoji:'🥕',placeId:'p18'},{id:'q19',text:'Onde a banda toca música ao ar livre, na praça?',emoji:'🎶',placeId:'p19'},{id:'q20',text:'Onde compramos jornais e revistas?',emoji:'🗞️',placeId:'p20'}]}}
+function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}if(!S||!S.places||!S.questions)S=defaults()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const uid_=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const cur=()=>G.order[G.i];
+const place=id=>S.places.find(p=>p.id===id);
+
+function speak(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';u.rate=.9;const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.toLowerCase().startsWith('pt'));if(v)u.voice=v;speechSynthesis.speak(u)}catch(e){}}
+function buzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
+function setMsg(t,c){const m=$('#msg');if(m){m.className='msg '+(c||'in');m.textContent=t}}
+
+async function ensureScan(){
+ if(scanning)return true;
+ if(!('NDEFReader' in window)){setMsg('Este navegador não lê NFC. Abra esta página direto no Chrome do Android.','er');return false}
+ try{const r=new NDEFReader();await r.scan();r.onreading=e=>onTag(e.serialNumber);r.onreadingerror=()=>setMsg('Não consegui ler a etiqueta. Encoste de novo.','er');scanning=true;return true}
+ catch(e){
+  const n=(e&&e.name)||'erro',emb=window.top!==window.self;let t;
+  if(emb||n==='SecurityError')t='O Chrome bloqueia o NFC quando a página está dentro de outra página ou de outro aplicativo. Abra o endereço da Cidade das Perguntas direto no Chrome. ';
+  else if(n==='NotAllowedError')t='Permissão de NFC negada. Toque no cadeado ao lado do endereço, abra Permissões, permita NFC e tente de novo. ';
+  else if(n==='NotReadableError')t='O NFC do celular parece desligado. Ligue em Configurações > NFC. ';
+  else t='Não consegui ativar o NFC. ';
+  setMsg(t+'(código: '+n+')','er');return false}}
+
+function onTag(uid){
+ if(pending){const p=place(pending);S.places.forEach(x=>{if(x.uid===uid)x.uid=''});p.uid=uid;pending=null;save();render();setMsg('Etiqueta cadastrada: '+p.name,'ok');speak('Etiqueta cadastrada para '+p.name);buzz(80);return}
+ if(G.state==='ask')guess(S.places.find(p=>p.uid===uid))}
+
+function guess(p){
+ if(G.lock)return;
+ if(!p){setMsg('Etiqueta não cadastrada. Cadastre na aba Cadastro.','er');return}
+ const q=cur();G.tries++;G.lock=true;
+ if(p.id===q.placeId){
+  G.hits++;setMsg('✅ Isso mesmo! '+p.emoji+' '+p.name,'ok');speak('Isso mesmo! '+p.name+'!');buzz(120);
+  setTimeout(()=>{G.lock=false;G.i++;if(G.i>=G.order.length){G.state='done';render();speak('Parabéns! Você acertou '+G.hits+' de '+G.order.length+' perguntas.')}else ask()},2600);
+ }else{
+  setMsg('Esse lugar é: '+p.emoji+' '+p.name+'. Tente de novo.','er');speak('Esse lugar é: '+p.name+'. Tente de novo.');buzz([80,60,80]);
+  setTimeout(()=>{G.lock=false;if(G.state==='ask'){setMsg('Aproxime o celular do lugar certo 📱','in');speak(q.text)}},2800);
+ }}
+
+function ask(){const q=cur();G.state='ask';render();setMsg('Aproxime o celular do lugar certo 📱','in');speak(q.text)}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+async function start(){
+ const ok=S.questions.filter(q=>place(q.placeId));
+ if(!ok.length){view='setup';render();setMsg('Cadastre ao menos uma pergunta.','er');return}
+ G={state:'ask',order:shuffle(ok),i:0,hits:0,tries:0,lock:false};
+ ask();
+ if(await ensureScan())setMsg('Aproxime o celular do lugar certo 📱','in')}
+
+function playHTML(){
+ if(G.state==='ask'){const q=cur();return `<div class="card center"><div class="prog">Pergunta ${G.i+1} de ${G.order.length}</div><div class="big">${esc(q.emoji||'❓')}</div><h2>${esc(q.text)}</h2><button data-act="repeat">🔊 Ouvir de novo</button><div id="msg" class="msg in"></div></div>
+ <details><summary>Modo teste (sem NFC)</summary><div class="sim">${S.places.map(p=>`<button class="sm" data-act="sim" data-id="${p.id}">${esc(p.emoji)} ${esc(p.name)}</button>`).join('')}</div></details>`}
+ if(G.state==='done')return `<div class="card center"><div class="big">🎉</div><h2>Muito bem!</h2><p>Acertos: ${G.hits} de ${G.order.length}<br>Tentativas: ${G.tries}</p><button class="pri" data-act="start">Jogar de novo</button></div>`;
+ return `<div class="card center"><div class="big">🏘️</div><h2>Cidade das Perguntas</h2><p>O celular faz uma pergunta. Encoste-o no lugar certo da maquete.</p><button class="pri" data-act="start">Começar</button><div id="msg" class="msg in"></div></div>`}
+
+function setupHTML(){
+ const pl=S.places.map(p=>`<div class="row"><span style="font-size:1.8rem">${esc(p.emoji)}</span><div class="t"><b>${esc(p.name)}</b><small>${p.uid?'Etiqueta: '+esc(p.uid):'Sem etiqueta'}</small></div><button class="sm" data-act="tag" data-id="${p.id}">${p.uid?'Ler outra':'Ler etiqueta'}</button><button class="sm" data-act="delplace" data-id="${p.id}" aria-label="Remover ${esc(p.name)}">✕</button></div>`).join('');
+ const qs=S.questions.map(q=>{const p=place(q.placeId);return `<div class="row"><span style="font-size:1.8rem">${esc(q.emoji||'❓')}</span><div class="t">${esc(q.text)}<small>Resposta: ${p?esc(p.name):'—'}</small></div><button class="sm" data-act="delq" data-id="${q.id}" aria-label="Remover pergunta">✕</button></div>`}).join('');
+ return `<div id="msg" class="msg in">Para cadastrar, toque em Ler etiqueta e encoste o celular no lugar da maquete.</div>
+ <div class="card"><h3>Lugares da maquete</h3>${pl}<div class="add"><input class="em" id="npe" placeholder="🏪" aria-label="Emoji"><input class="f1" id="npn" placeholder="Nome do lugar" aria-label="Nome do lugar"><button data-act="addplace">Adicionar</button></div></div>
+ <div class="card"><h3>Perguntas</h3>${qs||'<p>Nenhuma pergunta ainda.</p>'}<div class="add"><input class="em" id="nqe" placeholder="❓" aria-label="Emoji"><input class="f1" id="nqt" placeholder="Ex.: Onde compramos frutas?" aria-label="Pergunta"><select id="nqp" aria-label="Lugar da resposta">${S.places.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select><button data-act="addq">Adicionar</button></div></div>
+ <div class="card"><h3>Guardar ou levar o cadastro</h3><p>Exportar copia lugares, perguntas e etiquetas em um texto. Importar carrega esse texto em outro aparelho.</p><textarea id="dados" rows="4" style="width:100%;font:inherit;padding:10px;border-radius:12px;border:2px solid var(--bd);background:var(--bg);color:var(--tx)" aria-label="Texto do cadastro"></textarea><div class="add"><button data-act="export">Exportar</button><button data-act="import">Importar</button></div></div><button data-act="reset">Restaurar exemplo</button>`}
+
+function render(){
+ $('#tabs').innerHTML=`<button class="${view==='play'?'on':''}" data-act="tab" data-id="play">Jogar</button><button class="${view==='setup'?'on':''}" data-act="tab" data-id="setup">Cadastro</button>`;
+ $('#main').innerHTML=view==='play'?playHTML():setupHTML()}
+
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,id=b.dataset.id;
+ if(a==='tab'){view=id;pending=null;render()}
+ else if(a==='start')start();
+ else if(a==='repeat'&&G.state==='ask')speak(cur().text);
+ else if(a==='sim')guess(place(id));
+ else if(a==='tag'){pending=id;render();setMsg('Encoste o celular na etiqueta de '+place(id).name+'…','in');if(!(await ensureScan()))pending=null}
+ else if(a==='delplace'){S.places=S.places.filter(p=>p.id!==id);S.questions=S.questions.filter(q=>q.placeId!==id);save();render()}
+ else if(a==='delq'){S.questions=S.questions.filter(q=>q.id!==id);save();render()}
+ else if(a==='addplace'){const n=$('#npn').value.trim();if(!n)return;S.places.push({id:uid_(),name:n,emoji:$('#npe').value.trim()||'📍',uid:''});save();render()}
+ else if(a==='addq'){const t=$('#nqt').value.trim(),p=$('#nqp').value;if(!t||!p){setMsg('Escreva a pergunta e escolha o lugar da resposta.','er');return}S.questions.push({id:uid_(),text:t,emoji:$('#nqe').value.trim()||'❓',placeId:p});save();render()}
+ else if(a==='export'){const t=JSON.stringify(S);$('#dados').value=t;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>setMsg('Cadastro copiado. Cole em uma mensagem para guardar ou enviar.','ok')).catch(()=>setMsg('Copie o texto da caixa abaixo.','in'))}
+ else if(a==='import'){try{const d=JSON.parse($('#dados').value);if(!d.places||!d.questions)throw 0;S=d;save();render();setMsg('Cadastro importado.','ok')}catch(err){setMsg('Texto inválido. Cole o cadastro exportado.','er')}}
+ else if(a==='reset'){S=defaults();save();render()}
+});
+load();render();
+</script>
+</body>
+</html>
