@@ -77,7 +77,3 @@ Padaria, sorveteria, lanchonete, restaurante, livraria, loja de brinquedos, parq
 - Só funciona em **Chrome para Android**.
 - O cadastro fica salvo por aparelho. Para levar para outro celular, use **Exportar** e **Importar** na aba Cadastro, ou deixe o cadastro fixo no código (veja o manual).
 - A qualidade da voz depende das vozes em português instaladas no celular.
-
-## Licença
-
-Defina a licença antes de divulgar o projeto. Para material educativo, uma opção comum é **MIT** para o código e **CC BY-NC-SA** para as imagens. Adicione o arquivo `LICENSE` na raiz do repositório.
